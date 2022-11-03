@@ -9,6 +9,8 @@ import org.springframework.web.bind.annotation.*;
 import ru.practicum.main_service.user.model.NewUserRequest;
 import ru.practicum.main_service.user.service.UserService;
 
+import javax.validation.constraints.Positive;
+import javax.validation.constraints.PositiveOrZero;
 import java.util.List;
 
 @Controller
@@ -25,18 +27,18 @@ public class AdminUserController {
 
     @GetMapping
     public ResponseEntity<Object> getUsers(@RequestParam(name = "ids") List<Long> ids,
-                                           @RequestParam(name = "from", defaultValue = "0") Integer from,
-                                           @RequestParam(name = "size", defaultValue = "10") Integer size) {
+                                           @PositiveOrZero @RequestParam(name = "from", defaultValue = "0") Integer from,
+                                           @Positive @RequestParam(name = "size", defaultValue = "10") Integer size) {
         return new ResponseEntity<>(userService.findUsers(ids, from, size), HttpStatus.OK);
     }
 
     @PostMapping
     public ResponseEntity<Object> createUser(@RequestBody NewUserRequest userRequest) {
-        return new ResponseEntity<>(userService.createUser(userRequest), HttpStatus.OK);
+        return new ResponseEntity<>(userService.createUser(userRequest), HttpStatus.CREATED);
     }
 
     @DeleteMapping("/{userId}")
     public void deleteUser(@PathVariable Long userId) {
-
+        userService.deleteUser(userId);
     }
 }

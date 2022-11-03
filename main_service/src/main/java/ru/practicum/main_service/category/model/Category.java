@@ -1,4 +1,4 @@
-package ru.practicum.main_service.user.model;
+package ru.practicum.main_service.category.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import lombok.*;
@@ -6,15 +6,14 @@ import lombok.*;
 import javax.persistence.*;
 
 @Entity
-@Table(name = "users")
+@Table(name = "categories")
 @Getter
 @Setter
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@EqualsAndHashCode(of = "id, email")
 @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
-public class User {
+public class Category {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -22,6 +21,4 @@ public class User {
     private Long id;
     @Column(name = "name")
     private String name;
-    @Column(name = "email")
-    private String email;
 }

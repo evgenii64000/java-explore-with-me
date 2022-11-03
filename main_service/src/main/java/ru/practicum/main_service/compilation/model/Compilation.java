@@ -1,27 +1,30 @@
-package ru.practicum.main_service.user.model;
+package ru.practicum.main_service.compilation.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import lombok.*;
+import ru.practicum.main_service.event.model.Event;
 
 import javax.persistence.*;
+import java.util.List;
 
 @Entity
-@Table(name = "users")
+@Table(name = "compilations")
 @Getter
 @Setter
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@EqualsAndHashCode(of = "id, email")
 @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
-public class User {
+public class Compilation {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id")
     private Long id;
-    @Column(name = "name")
-    private String name;
-    @Column(name = "email")
-    private String email;
+    @Column(name = "pinned")
+    private Boolean pinned;
+    @Column(name = "title")
+    private String title;
+    @ManyToMany
+    private List<Event> events;
 }
