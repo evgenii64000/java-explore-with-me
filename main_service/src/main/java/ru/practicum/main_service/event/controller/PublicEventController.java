@@ -9,8 +9,10 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import ru.practicum.main_service.event.client.StatsClient;
 import ru.practicum.main_service.event.service.EventService;
 
+import javax.servlet.http.HttpServletRequest;
 import javax.validation.constraints.Positive;
 import javax.validation.constraints.PositiveOrZero;
 import java.util.List;
@@ -21,10 +23,12 @@ import java.util.List;
 public class PublicEventController {
 
     private final EventService eventService;
+    private final StatsClient statsClient;
 
     @Autowired
-    public PublicEventController(EventService eventService) {
+    public PublicEventController(EventService eventService, StatsClient statsClient) {
         this.eventService = eventService;
+        this.statsClient = statsClient;
     }
 
     @GetMapping
@@ -36,16 +40,20 @@ public class PublicEventController {
                                             @RequestParam(name = "onlyAvailable", defaultValue = "false") Boolean onlyAvailable,
                                             @RequestParam(name = "sort") String sort,
                                             @PositiveOrZero @RequestParam(name = "from", defaultValue = "0") Integer from,
-                                            @Positive @RequestParam(name = "size", defaultValue = "10") Integer size)
+                                            @Positive @RequestParam(name = "size", defaultValue = "10") Integer size,
+                                            HttpServletRequest request)
     /**
      * // TODO проверить ограничения.
      */
     {
+        statsClient.addHit(request.getRequestURI(), request.getRemoteAddr());
         return new ResponseEntity<>(eventService.findEvents(text, categories, paid, rangeStart, rangeEnd, onlyAvailable, sort, from, size), HttpStatus.OK);
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<Object> getEvent(@PathVariable Long id) {
+    public ResponseEntity<Object> getEvent(@PathVariable Long id,
+                                           HttpServletRequest request) {
+        statsClient.addHit(request.getRequestURI(), request.getRemoteAddr());
         return new ResponseEntity<>(eventService.findEvent(id), HttpStatus.OK);
     }
 }
