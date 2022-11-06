@@ -31,13 +31,13 @@ public class AdminCompilationController {
         compilationService.deleteCompilation(compId);
     }
 
-    @DeleteMapping("/{compId}/events/{eventId")
+    @DeleteMapping("/{compId}/events/{eventId}")
     public void deleteEventFromCompilation(@PathVariable Long compId,
                                            @PathVariable Long eventId) {
         compilationService.deleteEventFromCompilation(compId, eventId);
     }
 
-    @PatchMapping("/{compId}/events/{eventId")
+    @PatchMapping("/{compId}/events/{eventId}")
     public void addEventToCompilation(@PathVariable Long compId,
                                       @PathVariable Long eventId) {
         compilationService.addEventToCompilation(compId, eventId);

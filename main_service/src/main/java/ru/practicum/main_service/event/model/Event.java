@@ -35,8 +35,8 @@ public class Event {
     private Category category;
     @Column(name = "event_date")
     private LocalDateTime eventDate;
-    @Column(name = "location")
-    @Type(type = "org.hibernate.spatial.GeometryType")
+    @OneToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "location_id", referencedColumnName = "id")
     private Location location;
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "initiator_id", referencedColumnName = "id")

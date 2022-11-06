@@ -32,13 +32,16 @@ public class EventServiceImpl implements EventService {
     private final UserRepository userRepository;
     private final CategoryRepository categoryRepository;
     private final RequestRepository requestRepository;
+    private final LocationService locationService;
 
     public EventServiceImpl(EventRepository eventRepository, UserRepository userRepository,
-                            CategoryRepository categoryRepository, RequestRepository requestRepository) {
+                            CategoryRepository categoryRepository, RequestRepository requestRepository,
+                            LocationService locationService) {
         this.eventRepository = eventRepository;
         this.userRepository = userRepository;
         this.categoryRepository = categoryRepository;
         this.requestRepository = requestRepository;
+        this.locationService = locationService;
     }
 
     @Override
@@ -178,6 +181,7 @@ public class EventServiceImpl implements EventService {
         if (category.isEmpty()) {
             throw new NotFoundException("Category with id=" + newEventDto.getCategory() + " was not found.");
         }
+        locationService.save(newEventDto.getLocation());
         Event eventToSave = EventMapper.fromNewToEvent(newEventDto, category.get());
         eventToSave.setInitiator(user.get());
         Event event = eventRepository.save(eventToSave);
@@ -314,7 +318,8 @@ public class EventServiceImpl implements EventService {
             event.setEventDate(LocalDateTime.parse(updateEvent.getEventDate(), DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
         }
         if (updateEvent.getLocation() != null) {
-            event.setLocation(updateEvent.getLocation());
+            Location newLocation = locationService.update(updateEvent.getLocation(), event.getLocation().getId());
+            event.setLocation(newLocation);
         }
         if (updateEvent.getPaid() != null) {
             event.setPaid(updateEvent.getPaid());
