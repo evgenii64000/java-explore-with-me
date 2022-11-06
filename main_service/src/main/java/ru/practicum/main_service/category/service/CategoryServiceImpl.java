@@ -54,7 +54,7 @@ public class CategoryServiceImpl implements CategoryService {
             throw new NotFoundException("Event with id=" + categoryDto.getId() + " was not found.");
         }
         Category categoryToUpdate = category.get();
-        categoryToUpdate.setName(categoryToUpdate.getName());
+        categoryToUpdate.setName(categoryDto.getName());
         categoryRepository.save(categoryToUpdate);
         return CategoryMapper.fromCategoryToDto(categoryToUpdate);
     }

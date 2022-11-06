@@ -34,11 +34,12 @@ public class AdminUserController {
 
     @PostMapping
     public ResponseEntity<Object> createUser(@RequestBody NewUserRequest userRequest) {
-        return new ResponseEntity<>(userService.createUser(userRequest), HttpStatus.CREATED);
+        return new ResponseEntity<>(userService.createUser(userRequest), HttpStatus.OK);
     }
 
     @DeleteMapping("/{userId}")
-    public void deleteUser(@PathVariable Long userId) {
+    public ResponseEntity<Object> deleteUser(@PathVariable Long userId) {
         userService.deleteUser(userId);
+        return new ResponseEntity<>(null, HttpStatus.OK);
     }
 }
