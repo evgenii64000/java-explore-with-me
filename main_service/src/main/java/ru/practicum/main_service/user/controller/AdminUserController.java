@@ -38,8 +38,7 @@ public class AdminUserController {
     }
 
     @DeleteMapping("/{userId}")
-    public ResponseEntity<Object> deleteUser(@PathVariable Long userId) {
+    public void deleteUser(@PathVariable Long userId) {
         userService.deleteUser(userId);
-        return new ResponseEntity<>(null, HttpStatus.OK);
     }
 }

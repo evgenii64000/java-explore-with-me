@@ -61,10 +61,10 @@ public class CategoryServiceImpl implements CategoryService {
 
     @Override
     public void deleteCategory(Long id) {
-        Optional<Category> category = categoryRepository.findById(id);
-        if (category.isEmpty()) {
-            throw new NotFoundException("Event with id=" + id + " was not found.");
-        }
+//        Optional<Category> category = categoryRepository.findById(id);
+//        if (category.isEmpty()) {
+//            throw new NotFoundException("Event with id=" + id + " was not found.");
+//        }
         categoryRepository.deleteById(id);
         /**
          * // TODO проверить наличие events.

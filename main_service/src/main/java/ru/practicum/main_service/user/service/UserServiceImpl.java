@@ -33,7 +33,9 @@ public class UserServiceImpl implements UserService {
     public List<UserDto> findUsers(List<Long> ids, Integer from, Integer size) {
         List<User> users = userRepository.findByIds(ids, PageRequest.of(from / size, size)).toList();
         if (users.isEmpty()) {
-            throw new NotFoundException("Event with id=" + ids + " was not found.");
+            return userRepository.findAll(PageRequest.of(from / size, size)).stream()
+                    .map(user -> UserMapper.fromUserToDto(user))
+                    .collect(Collectors.toList());
         }
         return userRepository.findByIds(ids, PageRequest.of(from / size, size)).stream()
                 .map(user -> UserMapper.fromUserToDto(user))

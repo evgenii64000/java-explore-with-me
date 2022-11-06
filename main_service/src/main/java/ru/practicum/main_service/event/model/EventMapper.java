@@ -1,5 +1,6 @@
 package ru.practicum.main_service.event.model;
 
+import ru.practicum.main_service.Status;
 import ru.practicum.main_service.category.model.Category;
 import ru.practicum.main_service.category.model.CategoryMapper;
 import ru.practicum.main_service.user.model.UserMapper;
@@ -20,6 +21,7 @@ public class EventMapper {
                 .description(newEventDto.getDescription())
                 .participantLimit(newEventDto.getParticipantLimit())
                 .requestModeration(newEventDto.getRequestModeration())
+                .state(Status.PENDING)
                 .build();
     }
 
