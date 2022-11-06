@@ -54,5 +54,5 @@ CREATE TABLE IF NOT EXISTS participation_requests (
     created timestamp,
     status VARCHAR(10),
     FOREIGN KEY (requester_id) REFERENCES users (id) ON DELETE CASCADE,
-    FOREIGN KEY (event_id) REFERENCES events (id) ON DELETE SET CASCADE
+    FOREIGN KEY (event_id) REFERENCES events (id) ON DELETE CASCADE
 )
