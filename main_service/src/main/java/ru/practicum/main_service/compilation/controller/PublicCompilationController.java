@@ -24,7 +24,7 @@ public class PublicCompilationController {
     }
 
     @GetMapping
-    public ResponseEntity<Object> getCompilations(@RequestParam(name = "pinned") Boolean pinned,
+    public ResponseEntity<Object> getCompilations(@RequestParam(name = "pinned", defaultValue = "false") Boolean pinned,
                                                   @RequestParam(name = "from", defaultValue = "0") Integer from,
                                                   @RequestParam(name = "size", defaultValue = "10") Integer size) {
         return new ResponseEntity<>(compilationService.getCompilations(pinned, from, size), HttpStatus.OK);

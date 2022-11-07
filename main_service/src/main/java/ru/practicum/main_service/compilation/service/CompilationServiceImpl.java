@@ -11,6 +11,7 @@ import ru.practicum.main_service.compilation.repository.CompilationRepository;
 import ru.practicum.main_service.event.model.Event;
 import ru.practicum.main_service.event.repository.EventRepository;
 import ru.practicum.main_service.exceptions.NotFoundException;
+import ru.practicum.main_service.exceptions.WrongIdException;
 
 import java.util.List;
 import java.util.Optional;
@@ -56,13 +57,9 @@ public class CompilationServiceImpl implements CompilationService {
             compilation.setEvents(null);
         } else {
             List<Long> events = newCompilationDto.getEvents();
-            List<Event> eventsForCompilation = null;
-            for (Long eventId : events) {
-                Optional<Event> event = eventRepository.findById(eventId);
-                if (event.isEmpty()) {
-                    throw new NotFoundException("Event with id=" + eventId + " was not found.");
-                }
-                eventsForCompilation.add(event.get());
+            List<Event> eventsForCompilation = eventRepository.findAllById(events);
+            if (eventsForCompilation.isEmpty()) {
+                throw new WrongIdException("Event with ids=" + events + " was not found.");
             }
             compilation.setEvents(eventsForCompilation);
         }
@@ -86,13 +83,11 @@ public class CompilationServiceImpl implements CompilationService {
         for (Event event : compilation.getEvents()) {
             if (event.getId().equals(eventId)) {
                 compilation.getEvents().remove(event);
-                delete = true;
+                compilationRepository.save(compilation);
+                return;
             }
         }
-        if (!delete) {
-            throw new NotFoundException("Event with id=" + eventId + " was not found.");
-        }
-        compilationRepository.save(compilation);
+        throw new NotFoundException("Event with id=" + eventId + " was not found.");
     }
 
     @Override

@@ -29,6 +29,7 @@ public class ParticipationRequest {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "requester_id", referencedColumnName = "id")
     private User requester;
+    @Enumerated(EnumType.STRING)
     @Column(name = "status")
     private Status status;
     @Column(name = "created")

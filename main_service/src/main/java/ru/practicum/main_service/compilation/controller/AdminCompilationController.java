@@ -23,33 +23,38 @@ public class AdminCompilationController {
 
     @PostMapping
     public ResponseEntity<Object> createCompilation(@RequestBody NewCompilationDto newCompilationDto) {
-        return new ResponseEntity<>(compilationService.createCompilation(newCompilationDto), HttpStatus.CREATED);
+        return new ResponseEntity<>(compilationService.createCompilation(newCompilationDto), HttpStatus.OK);
     }
 
     @DeleteMapping("/{compId}")
-    public void deleteCompilation(@PathVariable Long compId) {
+    public ResponseEntity<Object> deleteCompilation(@PathVariable Long compId) {
         compilationService.deleteCompilation(compId);
+        return new ResponseEntity<>(null, HttpStatus.OK);
     }
 
     @DeleteMapping("/{compId}/events/{eventId}")
-    public void deleteEventFromCompilation(@PathVariable Long compId,
+    public ResponseEntity<Object> deleteEventFromCompilation(@PathVariable Long compId,
                                            @PathVariable Long eventId) {
         compilationService.deleteEventFromCompilation(compId, eventId);
+        return new ResponseEntity<>(null, HttpStatus.OK);
     }
 
     @PatchMapping("/{compId}/events/{eventId}")
-    public void addEventToCompilation(@PathVariable Long compId,
+    public ResponseEntity<Object> addEventToCompilation(@PathVariable Long compId,
                                       @PathVariable Long eventId) {
         compilationService.addEventToCompilation(compId, eventId);
+        return new ResponseEntity<>(null, HttpStatus.OK);
     }
 
     @DeleteMapping("/{compId}/pin")
-    public void unpinCompilation(@PathVariable Long compId) {
+    public ResponseEntity<Object> unpinCompilation(@PathVariable Long compId) {
         compilationService.unpinCompilation(compId);
+        return new ResponseEntity<>(null, HttpStatus.OK);
     }
 
     @PatchMapping("/{compId}/pin")
-    public void pinCompilation(@PathVariable Long compId) {
+    public ResponseEntity<Object> pinCompilation(@PathVariable Long compId) {
         compilationService.pinCompilation(compId);
+        return new ResponseEntity<>(null, HttpStatus.OK);
     }
 }

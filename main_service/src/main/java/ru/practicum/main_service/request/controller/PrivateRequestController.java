@@ -30,7 +30,7 @@ public class PrivateRequestController {
     @PostMapping
     public ResponseEntity<Object> createRequest(@PathVariable Long userId,
                                                 @Positive @RequestParam Long eventId) {
-        return new ResponseEntity<>(requestService.createRequest(userId, eventId), HttpStatus.CREATED);
+        return new ResponseEntity<>(requestService.createRequest(userId, eventId), HttpStatus.OK);
     }
 
     @PatchMapping("/{requestId}/cancel")

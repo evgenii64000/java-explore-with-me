@@ -41,7 +41,7 @@ CREATE TABLE IF NOT EXISTS events (
     published_on timestamp,
     confirmed_requests INTEGER,
     views INTEGER,
-    state VARCHAR(10) NOT NULL,
+    state VARCHAR(10),
     FOREIGN KEY (category_id) REFERENCES categories (id) ON DELETE CASCADE,
     FOREIGN KEY (initiator_id) REFERENCES users (id) ON DELETE CASCADE,
     FOREIGN KEY (location_id) REFERENCES locations (id) ON DELETE SET NULL

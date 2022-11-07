@@ -12,7 +12,7 @@ import javax.persistence.*;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@EqualsAndHashCode(of = "id, email")
+@EqualsAndHashCode(of = {"id", "email"})
 @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
 public class User {
 

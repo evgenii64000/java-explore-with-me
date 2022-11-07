@@ -8,9 +8,9 @@ import java.util.Optional;
 
 public interface RequestRepository extends JpaRepository<ParticipationRequest, Long> {
 
-    List<ParticipationRequest> findAllByRequester(Long id);
+    List<ParticipationRequest> findAllByRequester_Id(Long id);
 
-    Optional<ParticipationRequest> findAllByRequesterAndEvent(Long userId, Long eventId);
+    Optional<ParticipationRequest> findAllByRequester_IdAndEvent_Id(Long userId, Long eventId);
 
-    List<ParticipationRequest> findAllByEvent(Long eventId);
+    List<ParticipationRequest> findAllByEvent_Id(Long eventId);
 }

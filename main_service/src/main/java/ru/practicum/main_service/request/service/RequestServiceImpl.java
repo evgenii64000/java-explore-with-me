@@ -39,7 +39,7 @@ public class RequestServiceImpl implements RequestService {
         if (user.isEmpty()) {
             throw new NotFoundException("User with id=" + userId + " was not found.");
         }
-        List<ParticipationRequest> requests = requestRepository.findAllByRequester(userId);
+        List<ParticipationRequest> requests = requestRepository.findAllByRequester_Id(userId);
         if (requests.isEmpty()) {
             throw new NotFoundException("Requests with id=" + userId + " was not found.");
         }
@@ -67,7 +67,7 @@ public class RequestServiceImpl implements RequestService {
         if (event.getConfirmedRequests().equals(event.getParticipantLimit())) {
             throw new AboveLimitException("Достигнут лимит участников");
         }
-        Optional<ParticipationRequest> possibleRequest = requestRepository.findAllByRequesterAndEvent(userId, eventId);
+        Optional<ParticipationRequest> possibleRequest = requestRepository.findAllByRequester_IdAndEvent_Id(userId, eventId);
         if (possibleRequest.isPresent()) {
             throw new AlreadyExistException("Запрос на участие уже создан");
         }
@@ -78,7 +78,7 @@ public class RequestServiceImpl implements RequestService {
                 .event(event)
                 .build();
         if (!event.getRequestModeration()) {
-            participationRequest.setStatus(Status.PUBLISHED);
+            participationRequest.setStatus(Status.CONFIRMED);
         } else {
             participationRequest.setStatus(Status.PENDING);
         }
@@ -97,7 +97,7 @@ public class RequestServiceImpl implements RequestService {
         }
         ParticipationRequest requestToCancel = request.get();
         Event event = requestToCancel.getEvent();
-        if (event.getParticipantLimit() != 0 && requestToCancel.getStatus().equals(Status.PUBLISHED)) {
+        if (event.getParticipantLimit() != 0 && requestToCancel.getStatus().equals(Status.CONFIRMED)) {
             event.setConfirmedRequests(event.getConfirmedRequests() - 1);
             eventRepository.save(event);
         }

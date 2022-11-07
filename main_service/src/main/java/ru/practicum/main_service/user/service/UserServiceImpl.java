@@ -4,6 +4,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import ru.practicum.main_service.exceptions.NotFoundException;
+import ru.practicum.main_service.exceptions.WrongIdException;
 import ru.practicum.main_service.user.model.NewUserRequest;
 import ru.practicum.main_service.user.model.User;
 import ru.practicum.main_service.user.model.UserDto;
@@ -31,8 +32,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public List<UserDto> findUsers(List<Long> ids, Integer from, Integer size) {
-        List<User> users = userRepository.findByIds(ids, PageRequest.of(from / size, size)).toList();
-        if (users.isEmpty()) {
+        if (ids.isEmpty()) {
             return userRepository.findAll(PageRequest.of(from / size, size)).stream()
                     .map(user -> UserMapper.fromUserToDto(user))
                     .collect(Collectors.toList());

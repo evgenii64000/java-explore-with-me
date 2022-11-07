@@ -34,6 +34,6 @@ public interface EventService {
 
     EventFullDto rejectEvent(Long eventId);
 
-    List<EventFullDto> getEventsForAdmin(List<Long> users, List<Long> states, List<Long> categories,
+    List<EventFullDto> getEventsForAdmin(List<Long> users, List<String> states, List<Long> categories,
                                           String rangeStart, String rangeEnd, Integer from, Integer size);
 }

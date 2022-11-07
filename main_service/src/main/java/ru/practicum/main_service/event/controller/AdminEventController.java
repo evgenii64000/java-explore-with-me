@@ -27,7 +27,7 @@ public class AdminEventController {
 
     @GetMapping
     public ResponseEntity<Object> getEventsForAdmin(@RequestParam(name = "users") List<Long> users,
-                                                    @RequestParam(name = "states") List<Long> states,
+                                                    @RequestParam(name = "states") List<String> states,
                                                     @RequestParam(name = "categories") List<Long> categories,
                                                     @RequestParam(name = "rangeStart", defaultValue = "") String rangeStart,
                                                     @RequestParam(name = "rangeEnd", defaultValue = "") String rangeEnd,

@@ -55,6 +55,7 @@ public class Event {
     private Integer confirmedRequests;
     @Column(name = "views")
     private Integer views;
+    @Enumerated(EnumType.STRING)
     @Column(name = "state")
     private Status state;
 }

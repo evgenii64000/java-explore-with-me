@@ -8,10 +8,7 @@ import ru.practicum.main_service.category.model.Category;
 import ru.practicum.main_service.category.repository.CategoryRepository;
 import ru.practicum.main_service.event.model.*;
 import ru.practicum.main_service.event.repository.EventRepository;
-import ru.practicum.main_service.exceptions.AboveLimitException;
-import ru.practicum.main_service.exceptions.NotFoundException;
-import ru.practicum.main_service.exceptions.WrongStatusException;
-import ru.practicum.main_service.exceptions.WrongTimeException;
+import ru.practicum.main_service.exceptions.*;
 import ru.practicum.main_service.request.model.ParticipationRequest;
 import ru.practicum.main_service.request.model.ParticipationRequestDto;
 import ru.practicum.main_service.request.model.RequestMapper;
@@ -21,12 +18,15 @@ import ru.practicum.main_service.user.repository.UserRepository;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
 public class EventServiceImpl implements EventService {
+
+    private final DateTimeFormatter FORMAT = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
 
     private final EventRepository eventRepository;
     private final UserRepository userRepository;
@@ -56,50 +56,48 @@ public class EventServiceImpl implements EventService {
     @Override
     public List<EventShortDto> findEvents(String text, List<Long> categories, Boolean paid, String rangeStart, String rangeEnd,
                                           Boolean onlyAvailable, String sort, Integer from, Integer size) {
-        if (Sort.checkSort(sort)) {
-            Sort sortType = Sort.valueOf(sort);
-        } else {
-            throw new RuntimeException();
-            /**
-             * // TODO изменить тип ошибки.
-             */
-        }
+
+
         if (categories.isEmpty()) {
-            throw new RuntimeException();
-            /**
-             * // TODO изменить тип ошибки.
-             */
+            throw new WrongIdException("Отсутствуют идентификаторы категорий");
         }
         LocalDateTime start;
         if (rangeStart.isEmpty()) {
             start = LocalDateTime.now();
         } else {
-            start = LocalDateTime.parse(rangeStart, DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
+            start = LocalDateTime.parse(rangeStart, FORMAT);
         }
         LocalDateTime end = null;
         if (!rangeEnd.isEmpty()) {
-            end = LocalDateTime.parse(rangeEnd, DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
+            end = LocalDateTime.parse(rangeEnd, FORMAT);
         }
         if (end != null && end.isBefore(start)) {
-            throw new WrongTimeException("Only pending or canceled events can be changed");
+            throw new WrongTimeException("Задан неверный интервал времени");
         }
         List<Event> events = null;
         if (onlyAvailable && end != null) {
-            events = eventRepository.findEventsAvailableRange(text, categories, paid, start, end, sort, PageRequest.of(from / size, size)).toList();
+            events = eventRepository.findEventsAvailableRange(text, categories, paid, start, end, PageRequest.of(from / size, size)).toList();
         }
         if (onlyAvailable && end == null) {
-            events = eventRepository.findEventsAvailable(text, categories, paid, start, sort, PageRequest.of(from / size, size)).toList();
+            events = eventRepository.findEventsAvailable(text, categories, paid, start, PageRequest.of(from / size, size)).toList();
         }
         if (!onlyAvailable && end != null) {
-            events = eventRepository.findEventsRange(text, categories, paid, start, end, sort, PageRequest.of(from / size, size)).toList();
+            events = eventRepository.findEventsRange(text, categories, paid, start, end, PageRequest.of(from / size, size)).toList();
         }
         if (!onlyAvailable && end == null) {
-            events = eventRepository.findEvents(text, categories, paid, start, sort, PageRequest.of(from / size, size)).toList();
+            events = eventRepository.findEvents(text, categories, paid, start, PageRequest.of(from / size, size)).toList();
         }
-        return events.stream().map(event -> EventMapper.fromEventToShort(event)).collect(Collectors.toList());
-        /**
-         * // TODO переделать.
-         */
+        if (Sort.valueOf(sort).equals(Sort.EVENT_DATE)) {
+            return events.stream()
+                    .sorted(Comparator.comparing(Event::getEventDate))
+                    .map(event -> EventMapper.fromEventToShort(event))
+                    .collect(Collectors.toList());
+        } else {
+            return events.stream()
+                    .sorted(Comparator.comparing(Event::getViews))
+                    .map(event -> EventMapper.fromEventToShort(event))
+                    .collect(Collectors.toList());
+        }
     }
 
     @Override
@@ -108,7 +106,7 @@ public class EventServiceImpl implements EventService {
         if (user.isEmpty()) {
             throw new NotFoundException("Event with id=" + userId + " was not found.");
         }
-        List<Event> events = eventRepository.findAllByInitiator(userId, PageRequest.of(from / size, size)).toList();
+        List<Event> events = eventRepository.findAllByInitiator_Id(userId, PageRequest.of(from / size, size)).toList();
         return events.stream().map(event -> EventMapper.fromEventToShort(event)).collect(Collectors.toList());
     }
 
@@ -123,6 +121,9 @@ public class EventServiceImpl implements EventService {
             throw new NotFoundException("Event with id=" + updateEventRequest.getEventId() + " was not found.");
         }
         Event changedEvent = eventToUpdate.get();
+        if (!user.get().equals(changedEvent.getInitiator())) {
+            throw new WrongIdException("Событие может редактировать только инициатор");
+        }
         if (changedEvent.getState().equals(Status.CANCELED) || changedEvent.getState().equals(Status.PENDING)) {
             if (updateEventRequest.getTitle() != null) {
                 changedEvent.setTitle(updateEventRequest.getTitle());
@@ -139,7 +140,7 @@ public class EventServiceImpl implements EventService {
                 }
             }
             if (updateEventRequest.getEventDate() != null) {
-                LocalDateTime newEventDate = LocalDateTime.parse(updateEventRequest.getEventDate(), DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
+                LocalDateTime newEventDate = LocalDateTime.parse(updateEventRequest.getEventDate(), FORMAT);
                 if (newEventDate.isBefore(LocalDateTime.now().plusHours(2L))) {
                     throw new WrongTimeException("Переделать сообщение об ошибке");
                 } else {
@@ -173,17 +174,16 @@ public class EventServiceImpl implements EventService {
         if (user.isEmpty()) {
             throw new NotFoundException("Event with id=" + userId + " was not found.");
         }
-        LocalDateTime eventDate = LocalDateTime.parse(newEventDto.getEventDate(), DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
+        LocalDateTime eventDate = LocalDateTime.parse(newEventDto.getEventDate(), FORMAT);
         if (eventDate.isBefore(LocalDateTime.now().plusHours(2L))) {
-            throw new WrongTimeException("Переделать сообщение об ошибке");
+            throw new WrongTimeException("Время начала события должно быть не ранее, чем через 2 часа");
         }
         Optional<Category> category = categoryRepository.findById(newEventDto.getCategory());
         if (category.isEmpty()) {
             throw new NotFoundException("Category with id=" + newEventDto.getCategory() + " was not found.");
         }
-        locationService.save(newEventDto.getLocation());
-        Event eventToSave = EventMapper.fromNewToEvent(newEventDto, category.get());
-        eventToSave.setInitiator(user.get());
+        Location location = locationService.save(newEventDto.getLocation());
+        Event eventToSave = EventMapper.fromNewToEvent(newEventDto, category.get(), user.get(), location, eventDate);
         Event event = eventRepository.save(eventToSave);
         return EventMapper.fromEventToFull(event);
     }
@@ -198,8 +198,8 @@ public class EventServiceImpl implements EventService {
         if (event.isEmpty()) {
             throw new NotFoundException("Event with id=" + eventId + " was not found.");
         }
-        if (event.get().getInitiator().equals(user.get())) {
-            throw new RuntimeException("wrongUser");
+        if (!event.get().getInitiator().equals(user.get())) {
+            throw new WrongIdException("Событие пытается просмотреть не инициатор");
         }
         return EventMapper.fromEventToFull(event.get());
     }
@@ -215,11 +215,11 @@ public class EventServiceImpl implements EventService {
             throw new NotFoundException("Event with id=" + eventId + " was not found.");
         }
         Event eventToCancel = event.get();
-        if (eventToCancel.getInitiator().equals(user.get())) {
-            throw new RuntimeException("wrongUser");
+        if (!eventToCancel.getInitiator().equals(user.get())) {
+            throw new WrongIdException("Событие пытается отменить не инициатор");
         }
         if (!eventToCancel.getState().equals(Status.PENDING)) {
-            throw new RuntimeException("Нельзя отменить опубликованное событие");
+            throw new WrongStatusException("Нельзя отменить опубликованное событие");
         }
         eventToCancel.setState(Status.CANCELED);
         return EventMapper.fromEventToFull(eventRepository.save(eventToCancel));
@@ -235,7 +235,7 @@ public class EventServiceImpl implements EventService {
         if (event.isEmpty()) {
             throw new NotFoundException("Event with id=" + eventId + " was not found.");
         }
-        List<ParticipationRequest> requests = requestRepository.findAllByEvent(eventId);
+        List<ParticipationRequest> requests = requestRepository.findAllByEvent_Id(eventId);
         return requests.stream().map(request -> RequestMapper.fromRequestToDto(request)).collect(Collectors.toList());
     }
 
@@ -259,12 +259,12 @@ public class EventServiceImpl implements EventService {
             return RequestMapper.fromRequestToDto(requestConfirmed);
         } else {
             if (updateEvent.getConfirmedRequests() < updateEvent.getParticipantLimit()) {
-                requestConfirmed.setStatus(Status.PUBLISHED);
+                requestConfirmed.setStatus(Status.CONFIRMED);
                 updateEvent.setConfirmedRequests(updateEvent.getConfirmedRequests() + 1);
                 eventRepository.save(updateEvent);
                 if (updateEvent.getConfirmedRequests().equals(updateEvent.getParticipantLimit())) {
-                    List<ParticipationRequest> requestsToCancel = requestRepository.findAllByEvent(eventId);
-                    requestsToCancel.stream().forEach(req -> req.setStatus(Status.CANCELED));
+                    List<ParticipationRequest> requestsToCancel = requestRepository.findAllByEvent_Id(eventId);
+                    requestsToCancel.stream().forEach(req -> req.setStatus(Status.REJECTED));
                     requestRepository.saveAll(requestsToCancel);
                 }
                 return RequestMapper.fromRequestToDto(requestConfirmed);
@@ -289,7 +289,7 @@ public class EventServiceImpl implements EventService {
             throw new NotFoundException("Request with id=" + eventId + " was not found.");
         }
         ParticipationRequest requestToReject = request.get();
-        requestToReject.setStatus(Status.CANCELED);
+        requestToReject.setStatus(Status.REJECTED);
         return RequestMapper.fromRequestToDto(requestRepository.save(requestToReject));
     }
 
@@ -315,7 +315,7 @@ public class EventServiceImpl implements EventService {
             }
         }
         if (updateEvent.getEventDate() != null) {
-            event.setEventDate(LocalDateTime.parse(updateEvent.getEventDate(), DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
+            event.setEventDate(LocalDateTime.parse(updateEvent.getEventDate(), FORMAT));
         }
         if (updateEvent.getLocation() != null) {
             Location newLocation = locationService.update(updateEvent.getLocation(), event.getLocation().getId());
@@ -344,7 +344,7 @@ public class EventServiceImpl implements EventService {
         }
         Event event = eventToRedact.get();
         LocalDateTime publish = LocalDateTime.now();
-        if (publish.isBefore(event.getEventDate().plusHours(1L))) {
+        if (publish.isAfter(event.getEventDate().minusHours(1L))) {
             throw new WrongTimeException("До начала события меньше часа");
         }
         event.setPublishedOn(publish);
@@ -362,7 +362,7 @@ public class EventServiceImpl implements EventService {
             throw new NotFoundException("Event with id=" + eventId + " was not found.");
         }
         Event event = eventToRedact.get();
-        if (!event.getState().equals(Status.PUBLISHED)) {
+        if (event.getState().equals(Status.PUBLISHED)) {
             throw new WrongStatusException("Событие уже опубликовано");
         }
         event.setState(Status.CANCELED);
@@ -370,10 +370,10 @@ public class EventServiceImpl implements EventService {
     }
 
     @Override
-    public List<EventFullDto> getEventsForAdmin(List<Long> users, List<Long> states, List<Long> categories,
-                                                 String rangeStart, String rangeEnd, Integer from, Integer size) {
-        LocalDateTime start = LocalDateTime.parse(rangeStart, DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
-        LocalDateTime end = LocalDateTime.parse(rangeEnd, DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
+    public List<EventFullDto> getEventsForAdmin(List<Long> users, List<String> states, List<Long> categories,
+                                                String rangeStart, String rangeEnd, Integer from, Integer size) {
+        LocalDateTime start = LocalDateTime.parse(rangeStart, FORMAT);
+        LocalDateTime end = LocalDateTime.parse(rangeEnd, FORMAT);
         List<Event> events = eventRepository.findForAdmin(users, states, categories, start, end,
                 PageRequest.of(from / size, size)).toList();
         return events.stream().map(event -> EventMapper.fromEventToFull(event)).collect(Collectors.toList());
