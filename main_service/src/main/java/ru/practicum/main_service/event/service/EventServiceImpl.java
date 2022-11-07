@@ -164,10 +164,6 @@ public class EventServiceImpl implements EventService {
         }
     }
 
-    /**
-     * // TODO добавить проверку на владельца.
-     */
-
     @Override
     public EventFullDto createEventByUser(Long userId, NewEventDto newEventDto) {
         Optional<User> user = userRepository.findById(userId);

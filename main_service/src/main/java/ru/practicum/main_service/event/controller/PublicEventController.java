@@ -42,9 +42,6 @@ public class PublicEventController {
                                             @PositiveOrZero @RequestParam(name = "from", defaultValue = "0") Integer from,
                                             @Positive @RequestParam(name = "size", defaultValue = "10") Integer size,
                                             HttpServletRequest request)
-    /**
-     * // TODO проверить ограничения.
-     */
     {
         statsClient.addHit(request.getRequestURI(), request.getRemoteAddr());
         return new ResponseEntity<>(eventService.findEvents(text, categories, paid, rangeStart, rangeEnd, onlyAvailable, sort, from, size), HttpStatus.OK);
