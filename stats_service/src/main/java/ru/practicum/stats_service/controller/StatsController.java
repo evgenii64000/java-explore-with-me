@@ -3,15 +3,16 @@ package ru.practicum.stats_service.controller;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.stereotype.Controller;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import ru.practicum.stats_service.model.EndpointHit;
 import ru.practicum.stats_service.service.StatsService;
 
 import java.util.List;
 
-@Controller
+@RestController
 @RequestMapping
+@Validated
 public class StatsController {
 
     private final StatsService statsService;
