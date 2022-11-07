@@ -14,13 +14,12 @@ import java.time.format.DateTimeFormatter;
 @Component
 public class StatsClient extends BaseClient {
 
-    private static final String API_PREFIX = "/hit";
 
     @Autowired
     public StatsClient(@Value("${stats-service.url}") String serverUrl, RestTemplateBuilder builder) {
         super(
                 builder
-                        .uriTemplateHandler(new DefaultUriBuilderFactory(serverUrl + API_PREFIX))
+                        .uriTemplateHandler(new DefaultUriBuilderFactory(serverUrl))
                         .requestFactory(HttpComponentsClientHttpRequestFactory::new)
                         .build()
         );
@@ -33,6 +32,6 @@ public class StatsClient extends BaseClient {
                 .ip(ip)
                 .timestamp(LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")))
                 .build();
-        return post("", endpointHit);
+        return post("/hit", endpointHit);
     }
 }
