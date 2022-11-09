@@ -375,7 +375,7 @@ public class EventServiceImpl implements EventService {
         } else {
             start = LocalDateTime.parse(rangeStart, FORMAT);
         }
-        LocalDateTime end = LocalDateTime.MAX;
+        LocalDateTime end = LocalDateTime.of(9999, 12, 31, 12, 00);
         if (!rangeEnd.isEmpty()) {
             end = LocalDateTime.parse(rangeEnd, FORMAT);
         }
