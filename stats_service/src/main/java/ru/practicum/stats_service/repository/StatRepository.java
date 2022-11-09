@@ -10,19 +10,19 @@ import java.util.List;
 public interface StatRepository extends JpaRepository<Hit, Long> {
 
     @Query(value = "SELECT * FROM hits " +
-            "WHERE hits.timestamp BETWEEN ?1 AND ?2 AND hits.uri IN ?3 " +
+            "WHERE hits.timestamp BETWEEN :start AND :end AND hits.uri IN :uris " +
             "GROUP BY hits.uri", nativeQuery = true)
     List<Hit> getHitsWithUriUnique(LocalDateTime start, LocalDateTime end, List<String> uris);
 
     @Query(value = "SELECT * FROM hits " +
-            "WHERE hits.timestamp BETWEEN ?1 AND ?2 AND hits.uri IN ?3 ", nativeQuery = true)
+            "WHERE hits.timestamp BETWEEN :start AND :end AND hits.uri IN :uris ", nativeQuery = true)
     List<Hit> getHitsWithUri(LocalDateTime start, LocalDateTime end, List<String> uris);
 
     @Query(value = "SELECT * FROM hits " +
-            "WHERE hits.timestamp BETWEEN ?1 AND ?2 GROUP BY hits.uri", nativeQuery = true)
+            "WHERE hits.timestamp BETWEEN :start AND :end GROUP BY hits.uri", nativeQuery = true)
     List<Hit> getHitsUnique(LocalDateTime start, LocalDateTime end);
 
     @Query(value = "SELECT * FROM hits " +
-            "WHERE hits.timestamp BETWEEN ?1 AND ?2", nativeQuery = true)
+            "WHERE hits.timestamp BETWEEN :start AND :end", nativeQuery = true)
     List<Hit> getHits(LocalDateTime start, LocalDateTime end);
 }

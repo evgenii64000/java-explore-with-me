@@ -1,14 +1,14 @@
 package ru.practicum.main_service.category.service;
 
-import com.sun.xml.bind.v2.TODO;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import ru.practicum.main_service.category.model.Category;
 import ru.practicum.main_service.category.model.CategoryDto;
 import ru.practicum.main_service.category.model.CategoryMapper;
 import ru.practicum.main_service.category.model.NewCategoryDto;
 import ru.practicum.main_service.category.repository.CategoryRepository;
+import ru.practicum.main_service.exceptions.NoDataToUpdateException;
 import ru.practicum.main_service.exceptions.NotFoundException;
 
 import java.util.List;
@@ -26,8 +26,8 @@ public class CategoryServiceImpl implements CategoryService {
     }
 
     @Override
-    public List<CategoryDto> getCategories(Integer from, Integer size) {
-        List<Category> categories = categoryRepository.findAll(PageRequest.of(from / size, size)).toList();
+    public List<CategoryDto> getCategories(Pageable pageable) {
+        List<Category> categories = categoryRepository.findAll(pageable).toList();
         return categories.stream().map(category -> CategoryMapper.fromCategoryToDto(category)).collect(Collectors.toList());
     }
 
@@ -43,12 +43,18 @@ public class CategoryServiceImpl implements CategoryService {
 
     @Override
     public CategoryDto createCategory(NewCategoryDto newCategoryDto) {
+        if (newCategoryDto.getName() == null) {
+            throw new NoDataToUpdateException("Отсутствуют данные для создания категории");
+        }
         Category category = categoryRepository.save(CategoryMapper.fromNewToCategory(newCategoryDto));
         return CategoryMapper.fromCategoryToDto(category);
     }
 
     @Override
     public CategoryDto updateCategory(CategoryDto categoryDto) {
+        if (categoryDto.getId() == null || categoryDto.getName() == null) {
+            throw new NoDataToUpdateException("Отсутствуют данные для обновления");
+        }
         Optional<Category> category = categoryRepository.findById(categoryDto.getId());
         if (category.isEmpty()) {
             throw new NotFoundException("Event with id=" + categoryDto.getId() + " was not found.");

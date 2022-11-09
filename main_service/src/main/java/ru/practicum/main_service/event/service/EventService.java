@@ -1,5 +1,6 @@
 package ru.practicum.main_service.event.service;
 
+import org.springframework.data.domain.Pageable;
 import ru.practicum.main_service.event.model.*;
 import ru.practicum.main_service.request.model.ParticipationRequestDto;
 
@@ -8,11 +9,11 @@ import java.util.List;
 public interface EventService {
 
     List<EventShortDto> findEvents(String text, List<Long> categories, Boolean paid, String rangeStart, String rangeEnd,
-                                   Boolean onlyAvailable, String sort, Integer from, Integer size);
+                                   Boolean onlyAvailable, String sort, Pageable pageable);
 
     EventFullDto findEvent(Long id);
 
-    List<EventShortDto> findEventsByUser(Long userId, Integer from, Integer size);
+    List<EventShortDto> findEventsByUser(Long userId, Pageable pageable);
 
     EventFullDto updateEventByUser(Long userId, UpdateEventRequest updateEventRequest);
 
@@ -35,5 +36,5 @@ public interface EventService {
     EventFullDto rejectEvent(Long eventId);
 
     List<EventFullDto> getEventsForAdmin(List<Long> users, List<String> states, List<Long> categories,
-                                          String rangeStart, String rangeEnd, Integer from, Integer size);
+                                          String rangeStart, String rangeEnd, Pageable pageable);
 }

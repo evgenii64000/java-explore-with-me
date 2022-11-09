@@ -1,6 +1,7 @@
 package ru.practicum.main_service.event.controller;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
@@ -29,7 +30,7 @@ public class PrivateEventController {
     public ResponseEntity<Object> getEventsByUser(@PathVariable Long userId,
                                                   @PositiveOrZero @RequestParam(name = "from", defaultValue = "0") Integer from,
                                                   @Positive @RequestParam(name = "size", defaultValue = "10") Integer size) {
-        return new ResponseEntity<>(eventService.findEventsByUser(userId, from, size), HttpStatus.OK);
+        return new ResponseEntity<>(eventService.findEventsByUser(userId, PageRequest.of(from / size, size)), HttpStatus.OK);
     }
 
     @PatchMapping
@@ -71,8 +72,8 @@ public class PrivateEventController {
 
     @PatchMapping("/{eventId}/requests/{reqId}/reject")
     public ResponseEntity<Object> rejectRequestByUser(@PathVariable Long userId,
-                                                       @PathVariable Long eventId,
-                                                       @PathVariable Long reqId) {
+                                                      @PathVariable Long eventId,
+                                                      @PathVariable Long reqId) {
         return new ResponseEntity<>(eventService.rejectRequestByUser(userId, eventId, reqId), HttpStatus.OK);
     }
 }

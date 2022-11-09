@@ -1,7 +1,7 @@
 package ru.practicum.main_service.compilation.service;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import ru.practicum.main_service.compilation.model.Compilation;
 import ru.practicum.main_service.compilation.model.CompilationDto;
@@ -10,6 +10,7 @@ import ru.practicum.main_service.compilation.model.NewCompilationDto;
 import ru.practicum.main_service.compilation.repository.CompilationRepository;
 import ru.practicum.main_service.event.model.Event;
 import ru.practicum.main_service.event.repository.EventRepository;
+import ru.practicum.main_service.exceptions.NoDataToUpdateException;
 import ru.practicum.main_service.exceptions.NotFoundException;
 import ru.practicum.main_service.exceptions.WrongIdException;
 
@@ -30,8 +31,8 @@ public class CompilationServiceImpl implements CompilationService {
     }
 
     @Override
-    public List<CompilationDto> getCompilations(Boolean pinned, Integer from, Integer size) {
-        List<Compilation> compilations = compilationRepository.findAllByPinned(pinned, PageRequest.of(from / size, size)).toList();
+    public List<CompilationDto> getCompilations(Boolean pinned, Pageable pageable) {
+        List<Compilation> compilations = compilationRepository.findAllByPinned(pinned, pageable).toList();
         return compilations.stream().map(compilation -> CompilationMapper.fromCompilationToDto(compilation)).collect(Collectors.toList());
     }
 
@@ -46,6 +47,9 @@ public class CompilationServiceImpl implements CompilationService {
 
     @Override
     public CompilationDto createCompilation(NewCompilationDto newCompilationDto) {
+        if (newCompilationDto.getTitle() == null) {
+            throw new NoDataToUpdateException("Отсутствуют данные для создания подборки");
+        }
         Compilation compilation = new Compilation();
         compilation.setTitle(newCompilationDto.getTitle());
         if (newCompilationDto.getPinned().equals(null)) {

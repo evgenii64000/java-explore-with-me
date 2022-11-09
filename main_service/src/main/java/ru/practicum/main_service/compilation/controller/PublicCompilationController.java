@@ -1,6 +1,7 @@
 package ru.practicum.main_service.compilation.controller;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
@@ -27,7 +28,7 @@ public class PublicCompilationController {
     public ResponseEntity<Object> getCompilations(@RequestParam(name = "pinned", defaultValue = "false") Boolean pinned,
                                                   @RequestParam(name = "from", defaultValue = "0") Integer from,
                                                   @RequestParam(name = "size", defaultValue = "10") Integer size) {
-        return new ResponseEntity<>(compilationService.getCompilations(pinned, from, size), HttpStatus.OK);
+        return new ResponseEntity<>(compilationService.getCompilations(pinned, PageRequest.of(from / size, size)), HttpStatus.OK);
     }
 
     @GetMapping("/{compId}")

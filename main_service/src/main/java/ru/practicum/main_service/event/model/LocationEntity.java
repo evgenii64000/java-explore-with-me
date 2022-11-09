@@ -1,22 +1,21 @@
-package ru.practicum.main_service.user.model;
+package ru.practicum.main_service.event.model;
 
 import lombok.*;
 
 import javax.persistence.*;
 
 @Entity
-@Table(name = "users")
+@Table(name = "locations")
 @Getter
 @Setter
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@EqualsAndHashCode(of = {"id", "email"})
-public class User {
+public class LocationEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-    private String name;
-    private String email;
+    private Float lat;
+    private Float lon;
 }

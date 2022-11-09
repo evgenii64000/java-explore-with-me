@@ -34,14 +34,14 @@ public class AdminCompilationController {
 
     @DeleteMapping("/{compId}/events/{eventId}")
     public ResponseEntity<Object> deleteEventFromCompilation(@PathVariable Long compId,
-                                           @PathVariable Long eventId) {
+                                                             @PathVariable Long eventId) {
         compilationService.deleteEventFromCompilation(compId, eventId);
         return new ResponseEntity<>(null, HttpStatus.OK);
     }
 
     @PatchMapping("/{compId}/events/{eventId}")
     public ResponseEntity<Object> addEventToCompilation(@PathVariable Long compId,
-                                      @PathVariable Long eventId) {
+                                                        @PathVariable Long eventId) {
         compilationService.addEventToCompilation(compId, eventId);
         return new ResponseEntity<>(null, HttpStatus.OK);
     }

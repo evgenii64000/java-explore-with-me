@@ -1,6 +1,7 @@
 package ru.practicum.main_service.category.controller;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
@@ -29,7 +30,7 @@ public class PublicCategoryController {
     @GetMapping
     public ResponseEntity<Object> getCategories(@PositiveOrZero @RequestParam(name = "from", defaultValue = "0") Integer from,
                                                 @Positive @RequestParam(name = "size", defaultValue = "10") Integer size) {
-        return new ResponseEntity<>(categoryService.getCategories(from, size), HttpStatus.OK);
+        return new ResponseEntity<>(categoryService.getCategories(PageRequest.of(from / size, size)), HttpStatus.OK);
     }
 
     @GetMapping("/{catId}")

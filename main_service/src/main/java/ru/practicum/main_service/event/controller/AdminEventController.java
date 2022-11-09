@@ -1,6 +1,7 @@
 package ru.practicum.main_service.event.controller;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
@@ -27,13 +28,13 @@ public class AdminEventController {
 
     @GetMapping
     public ResponseEntity<Object> getEventsForAdmin(@RequestParam(name = "users") List<Long> users,
-                                                    @RequestParam(name = "states") List<String> states,
+                                                    @RequestParam(name = "states", defaultValue = "PUBLISHED") List<String> states,
                                                     @RequestParam(name = "categories") List<Long> categories,
                                                     @RequestParam(name = "rangeStart", defaultValue = "") String rangeStart,
                                                     @RequestParam(name = "rangeEnd", defaultValue = "") String rangeEnd,
                                                     @PositiveOrZero @RequestParam(name = "from", defaultValue = "0") Integer from,
                                                     @Positive @RequestParam(name = "size", defaultValue = "10") Integer size) {
-        return new ResponseEntity<>(eventService.getEventsForAdmin(users, states, categories, rangeStart, rangeEnd, from, size), HttpStatus.OK);
+        return new ResponseEntity<>(eventService.getEventsForAdmin(users, states, categories, rangeStart, rangeEnd, PageRequest.of(from / size, size)), HttpStatus.OK);
     }
 
     @PutMapping("/{eventId}")

@@ -1,6 +1,7 @@
 package ru.practicum.main_service.event.controller;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
@@ -44,7 +45,7 @@ public class PublicEventController {
                                             HttpServletRequest request)
     {
         statsClient.addHit(request.getRequestURI(), request.getRemoteAddr());
-        return new ResponseEntity<>(eventService.findEvents(text, categories, paid, rangeStart, rangeEnd, onlyAvailable, sort, from, size), HttpStatus.OK);
+        return new ResponseEntity<>(eventService.findEvents(text, categories, paid, rangeStart, rangeEnd, onlyAvailable, sort, PageRequest.of(from / size, size)), HttpStatus.OK);
     }
 
     @GetMapping("/{id}")

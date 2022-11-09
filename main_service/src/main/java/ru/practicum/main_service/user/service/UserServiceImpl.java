@@ -1,10 +1,9 @@
 package ru.practicum.main_service.user.service;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
-import ru.practicum.main_service.exceptions.NotFoundException;
-import ru.practicum.main_service.exceptions.WrongIdException;
+import ru.practicum.main_service.exceptions.NoDataToUpdateException;
 import ru.practicum.main_service.user.model.NewUserRequest;
 import ru.practicum.main_service.user.model.User;
 import ru.practicum.main_service.user.model.UserDto;
@@ -26,18 +25,21 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public UserDto createUser(NewUserRequest userRequest) {
+        if (userRequest.getName() == null || userRequest.getEmail() == null) {
+            throw new NoDataToUpdateException("Отсутствуют данные для создания пользователя");
+        }
         User user = userRepository.save(UserMapper.fromNewToUser(userRequest));
         return UserMapper.fromUserToDto(user);
     }
 
     @Override
-    public List<UserDto> findUsers(List<Long> ids, Integer from, Integer size) {
+    public List<UserDto> findUsers(List<Long> ids, Pageable pageable) {
         if (ids.isEmpty()) {
-            return userRepository.findAll(PageRequest.of(from / size, size)).stream()
+            return userRepository.findAll(pageable).stream()
                     .map(user -> UserMapper.fromUserToDto(user))
                     .collect(Collectors.toList());
         }
-        return userRepository.findByIds(ids, PageRequest.of(from / size, size)).stream()
+        return userRepository.findByIds(ids, pageable).stream()
                 .map(user -> UserMapper.fromUserToDto(user))
                 .collect(Collectors.toList());
     }

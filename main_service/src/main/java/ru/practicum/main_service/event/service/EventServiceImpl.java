@@ -1,6 +1,6 @@
 package ru.practicum.main_service.event.service;
 
-import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import ru.practicum.main_service.Sort;
 import ru.practicum.main_service.Status;
@@ -55,9 +55,7 @@ public class EventServiceImpl implements EventService {
 
     @Override
     public List<EventShortDto> findEvents(String text, List<Long> categories, Boolean paid, String rangeStart, String rangeEnd,
-                                          Boolean onlyAvailable, String sort, Integer from, Integer size) {
-
-
+                                          Boolean onlyAvailable, String sort, Pageable pageable) {
         if (categories.isEmpty()) {
             throw new WrongIdException("Отсутствуют идентификаторы категорий");
         }
@@ -76,16 +74,16 @@ public class EventServiceImpl implements EventService {
         }
         List<Event> events = null;
         if (onlyAvailable && end != null) {
-            events = eventRepository.findEventsAvailableRange(text, categories, paid, start, end, PageRequest.of(from / size, size)).toList();
+            events = eventRepository.findEventsAvailableRange(text, categories, paid, start, end, pageable).toList();
         }
         if (onlyAvailable && end == null) {
-            events = eventRepository.findEventsAvailable(text, categories, paid, start, PageRequest.of(from / size, size)).toList();
+            events = eventRepository.findEventsAvailable(text, categories, paid, start, pageable).toList();
         }
         if (!onlyAvailable && end != null) {
-            events = eventRepository.findEventsRange(text, categories, paid, start, end, PageRequest.of(from / size, size)).toList();
+            events = eventRepository.findEventsRange(text, categories, paid, start, end, pageable).toList();
         }
         if (!onlyAvailable && end == null) {
-            events = eventRepository.findEvents(text, categories, paid, start, PageRequest.of(from / size, size)).toList();
+            events = eventRepository.findEvents(text, categories, paid, start, pageable).toList();
         }
         if (Sort.valueOf(sort).equals(Sort.EVENT_DATE)) {
             return events.stream()
@@ -101,12 +99,12 @@ public class EventServiceImpl implements EventService {
     }
 
     @Override
-    public List<EventShortDto> findEventsByUser(Long userId, Integer from, Integer size) {
+    public List<EventShortDto> findEventsByUser(Long userId, Pageable pageable) {
         Optional<User> user = userRepository.findById(userId);
         if (user.isEmpty()) {
             throw new NotFoundException("Event with id=" + userId + " was not found.");
         }
-        List<Event> events = eventRepository.findAllByInitiator_Id(userId, PageRequest.of(from / size, size)).toList();
+        List<Event> events = eventRepository.findAllByInitiator_Id(userId, pageable).toList();
         return events.stream().map(event -> EventMapper.fromEventToShort(event)).collect(Collectors.toList());
     }
 
@@ -166,6 +164,10 @@ public class EventServiceImpl implements EventService {
 
     @Override
     public EventFullDto createEventByUser(Long userId, NewEventDto newEventDto) {
+        if (newEventDto.getTitle() == null || newEventDto.getAnnotation() == null || newEventDto.getCategory() == null
+        || newEventDto.getEventDate() == null || newEventDto.getLocation() == null || newEventDto.getDescription() == null) {
+            throw new NoDataToUpdateException("Отсутствуют данные для создания события");
+        }
         Optional<User> user = userRepository.findById(userId);
         if (user.isEmpty()) {
             throw new NotFoundException("Event with id=" + userId + " was not found.");
@@ -314,8 +316,7 @@ public class EventServiceImpl implements EventService {
             event.setEventDate(LocalDateTime.parse(updateEvent.getEventDate(), FORMAT));
         }
         if (updateEvent.getLocation() != null) {
-            Location newLocation = locationService.update(updateEvent.getLocation(), event.getLocation().getId());
-            event.setLocation(newLocation);
+            locationService.update(updateEvent.getLocation(), event.getLocation().getId());
         }
         if (updateEvent.getPaid() != null) {
             event.setPaid(updateEvent.getPaid());
@@ -367,11 +368,37 @@ public class EventServiceImpl implements EventService {
 
     @Override
     public List<EventFullDto> getEventsForAdmin(List<Long> users, List<String> states, List<Long> categories,
-                                                String rangeStart, String rangeEnd, Integer from, Integer size) {
-        LocalDateTime start = LocalDateTime.parse(rangeStart, FORMAT);
-        LocalDateTime end = LocalDateTime.parse(rangeEnd, FORMAT);
-        List<Event> events = eventRepository.findForAdmin(users, states, categories, start, end,
-                PageRequest.of(from / size, size)).toList();
-        return events.stream().map(event -> EventMapper.fromEventToFull(event)).collect(Collectors.toList());
+                                                String rangeStart, String rangeEnd, Pageable pageable) {
+        LocalDateTime start;
+        if (rangeStart.isEmpty()) {
+            start = LocalDateTime.now();
+        } else {
+            start = LocalDateTime.parse(rangeStart, FORMAT);
+        }
+        LocalDateTime end = LocalDateTime.MAX;
+        if (!rangeEnd.isEmpty()) {
+            end = LocalDateTime.parse(rangeEnd, FORMAT);
+        }
+        if (end.isBefore(start)) {
+            throw new WrongTimeException("Задан неверный интервал времени");
+        }
+        List<Event> events = null;
+        if (users != null && categories != null) {
+            events = eventRepository.findForAdmin(users, states, categories, start, end, pageable).toList();
+        }
+        if (users == null && categories == null) {
+            events = eventRepository.findForAdminNullParam(states, start, end, pageable).toList();
+        }
+        if (users != null && categories == null) {
+            events = eventRepository.findForAdminOnlyUsers(users, states, start, end, pageable).toList();
+        }
+        if (users == null && categories != null) {
+            events = eventRepository.findForAdminOnlyCategories(states, categories, start, end, pageable).toList();
+        }
+        if (events != null) {
+            return events.stream().map(event -> EventMapper.fromEventToFull(event)).collect(Collectors.toList());
+        } else {
+            return null;
+        }
     }
 }

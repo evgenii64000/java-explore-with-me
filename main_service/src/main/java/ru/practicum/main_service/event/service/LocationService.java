@@ -3,6 +3,8 @@ package ru.practicum.main_service.event.service;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import ru.practicum.main_service.event.model.Location;
+import ru.practicum.main_service.event.model.LocationEntity;
+import ru.practicum.main_service.event.model.LocationMapper;
 import ru.practicum.main_service.event.repository.LocationRepository;
 import ru.practicum.main_service.exceptions.WrongIdException;
 
@@ -19,17 +21,18 @@ public class LocationService {
     }
 
     public Location save(Location location) {
-        return locationRepository.save(location);
+        LocationEntity locationEntity = LocationMapper.toEntity(location);
+        return LocationMapper.toDto(locationRepository.save(locationEntity));
     }
 
     public Location update(Location location, Long id) {
-        Optional<Location> optionalLocation = locationRepository.findById(id);
+        Optional<LocationEntity> optionalLocation = locationRepository.findById(id);
         if (optionalLocation.isEmpty()) {
             throw new WrongIdException("Location with id=" + id +  "not found");
         }
-        Location updateLocation = optionalLocation.get();
+        LocationEntity updateLocation = optionalLocation.get();
         updateLocation.setLat(location.getLat());
         updateLocation.setLon(location.getLon());
-        return locationRepository.save(updateLocation);
+        return LocationMapper.toDto(locationRepository.save(updateLocation));
     }
 }

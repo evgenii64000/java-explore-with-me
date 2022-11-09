@@ -1,6 +1,7 @@
 package ru.practicum.main_service.user.controller;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
@@ -29,7 +30,7 @@ public class AdminUserController {
     public ResponseEntity<Object> getUsers(@RequestParam(name = "ids") List<Long> ids,
                                            @PositiveOrZero @RequestParam(name = "from", defaultValue = "0") Integer from,
                                            @Positive @RequestParam(name = "size", defaultValue = "10") Integer size) {
-        return new ResponseEntity<>(userService.findUsers(ids, from, size), HttpStatus.OK);
+        return new ResponseEntity<>(userService.findUsers(ids, PageRequest.of(from / size, size)), HttpStatus.OK);
     }
 
     @PostMapping
