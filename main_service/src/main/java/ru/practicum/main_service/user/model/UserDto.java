@@ -18,4 +18,5 @@ public class UserDto {
     private String name;
     @Email
     private String email;
+    private Long rating;
 }

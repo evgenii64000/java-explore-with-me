@@ -76,4 +76,11 @@ public class PrivateEventController {
                                                       @PathVariable Long reqId) {
         return new ResponseEntity<>(eventService.rejectRequestByUser(userId, eventId, reqId), HttpStatus.OK);
     }
+
+    @PatchMapping("/{eventId}/rate")
+    public ResponseEntity<Object> rateEventByUser(@PathVariable Long userId,
+                                                  @PathVariable Long eventId,
+                                                  @RequestParam Boolean like) {
+        return new ResponseEntity<>(eventService.rateEventByUser(userId, eventId, like), HttpStatus.OK);
+    }
 }

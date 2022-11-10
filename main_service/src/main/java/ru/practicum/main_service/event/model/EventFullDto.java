@@ -36,5 +36,6 @@ public class EventFullDto {
     private Integer participantLimit;
     private Integer confirmedRequests;
     private Boolean requestModeration;
+    private Long rating;
 
 }

@@ -43,4 +43,5 @@ public class Event {
     private Integer views;
     @Enumerated(EnumType.STRING)
     private Status state;
+    private Long rating;
 }

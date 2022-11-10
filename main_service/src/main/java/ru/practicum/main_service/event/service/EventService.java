@@ -37,4 +37,6 @@ public interface EventService {
 
     List<EventFullDto> getEventsForAdmin(List<Long> users, List<String> states, List<Long> categories,
                                           String rangeStart, String rangeEnd, Pageable pageable);
+
+    EventFullDto rateEventByUser(Long userId, Long eventId, Boolean like);
 }
