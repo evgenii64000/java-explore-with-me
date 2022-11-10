@@ -1,15 +1,50 @@
 version: '3.1'
 services:
   stats-server:
+    build: ./stats_service
+    image: stats_image
+    container_name: stats-service
     ports:
       - "9090:9090"
+    depends_on:
+      - stats-db
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://stats-db:5432/stats_service
+      - POSTGRES_USER=practicum
+      - POSTGRES_PASSWORD=practicum
+
 
   stats-db:
     image: postgres:14-alpine
+    container_name: stats-db
+#    ports:
+#      - "5432:5432"
+    environment:
+      - POSTGRES_DB=stats_service
+      - POSTGRES_USER=practicum
+      - POSTGRES_PASSWORD=practicum
 
   ewm-service:
+    build: ./main_service
+    image: main_image
+    container_name: main-service
     ports:
       - "8080:8080"
+      - "8081:8081"
+    depends_on:
+      - ewm-db
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://ewm-db:5432/main_service
+      - POSTGRES_USER=practicum
+      - POSTGRES_PASSWORD=practicum
+
 
   ewm-db:
     image: postgres:14-alpine
+    container_name: main-db
+#    ports:
+#      - "5432:5432"
+    environment:
+      - POSTGRES_DB=main_service
+      - POSTGRES_USER=practicum
+      - POSTGRES_PASSWORD=practicum
