@@ -8,6 +8,7 @@ import ru.practicum.main_service.user.model.UserMapper;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.HashMap;
 
 public class EventMapper {
 
@@ -29,6 +30,7 @@ public class EventMapper {
                 .participantLimit(newEventDto.getParticipantLimit())
                 .requestModeration(newEventDto.getRequestModeration())
                 .state(Status.PENDING)
+                .rating(0L)
                 .build();
     }
 
@@ -49,6 +51,7 @@ public class EventMapper {
                 .participantLimit(event.getParticipantLimit())
                 .confirmedRequests(event.getConfirmedRequests())
                 .requestModeration(event.getRequestModeration())
+                .rating(event.getRating())
                 .build();
         if (!eventFullDto.getState().equals("PUBLISHED")) {
             eventFullDto.setPublishedOn(null);
@@ -69,6 +72,7 @@ public class EventMapper {
                 .paid(event.getPaid())
                 .views(event.getViews())
                 .confirmedRequests(event.getConfirmedRequests())
+                .rating(event.getRating())
                 .build();
     }
 }

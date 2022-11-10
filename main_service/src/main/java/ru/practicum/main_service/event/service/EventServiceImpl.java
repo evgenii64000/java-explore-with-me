@@ -33,15 +33,17 @@ public class EventServiceImpl implements EventService {
     private final CategoryRepository categoryRepository;
     private final RequestRepository requestRepository;
     private final LocationService locationService;
+    private final LikeService likeService;
 
     public EventServiceImpl(EventRepository eventRepository, UserRepository userRepository,
                             CategoryRepository categoryRepository, RequestRepository requestRepository,
-                            LocationService locationService) {
+                            LocationService locationService, LikeService likeService) {
         this.eventRepository = eventRepository;
         this.userRepository = userRepository;
         this.categoryRepository = categoryRepository;
         this.requestRepository = requestRepository;
         this.locationService = locationService;
+        this.likeService = likeService;
     }
 
     @Override
@@ -85,17 +87,20 @@ public class EventServiceImpl implements EventService {
         if (!onlyAvailable && end == null) {
             events = eventRepository.findEvents(text, categories, paid, start, pageable).toList();
         }
-        if (Sort.valueOf(sort).equals(Sort.EVENT_DATE)) {
-            return events.stream()
-                    .sorted(Comparator.comparing(Event::getEventDate))
-                    .map(event -> EventMapper.fromEventToShort(event))
-                    .collect(Collectors.toList());
-        } else {
-            return events.stream()
-                    .sorted(Comparator.comparing(Event::getViews))
-                    .map(event -> EventMapper.fromEventToShort(event))
-                    .collect(Collectors.toList());
+        switch (Sort.valueOf(sort)) {
+            case VIEWS:
+                events = events.stream().sorted(Comparator.comparing(Event::getViews)).collect(Collectors.toList());
+                break;
+            case EVENT_DATE:
+                events = events.stream().sorted(Comparator.comparing(Event::getEventDate)).collect(Collectors.toList());
+                break;
+            case RATING:
+                events = events.stream().sorted(Comparator.comparing(Event::getRating)).collect(Collectors.toList());
+                break;
         }
+        return events.stream()
+                .map(EventMapper::fromEventToShort)
+                .collect(Collectors.toList());
     }
 
     @Override
@@ -165,7 +170,7 @@ public class EventServiceImpl implements EventService {
     @Override
     public EventFullDto createEventByUser(Long userId, NewEventDto newEventDto) {
         if (newEventDto.getTitle() == null || newEventDto.getAnnotation() == null || newEventDto.getCategory() == null
-        || newEventDto.getEventDate() == null || newEventDto.getLocation() == null || newEventDto.getDescription() == null) {
+                || newEventDto.getEventDate() == null || newEventDto.getLocation() == null || newEventDto.getDescription() == null) {
             throw new NoDataToUpdateException("Отсутствуют данные для создания события");
         }
         Optional<User> user = userRepository.findById(userId);
@@ -399,6 +404,49 @@ public class EventServiceImpl implements EventService {
             return events.stream().map(event -> EventMapper.fromEventToFull(event)).collect(Collectors.toList());
         } else {
             return null;
+        }
+    }
+
+    @Override
+    public EventFullDto rateEventByUser(Long userId, Long eventId, Boolean like) {
+        Optional<User> user = userRepository.findById(userId);
+        if (user.isEmpty()) {
+            throw new NotFoundException("User with id=" + userId + " was not found.");
+        }
+        Optional<Event> eventToRate = eventRepository.findById(eventId);
+        if (eventToRate.isEmpty()) {
+            throw new NotFoundException("Event with id=" + eventId + " was not found.");
+        }
+        Event event = eventToRate.get();
+        if (event.getInitiator().equals(user.get())) {
+            throw new WrongIdException("Событие пытается оценить инициатор");
+        }
+        if (!event.getState().equals(Status.PUBLISHED)) {
+            throw new WrongStatusException("Нельзя оценить неопубликованное событие");
+        }
+        if (LocalDateTime.now().isBefore(event.getEventDate())) {
+            throw new WrongTimeException("Нельзя оценить ещё не прошедшее событие");
+        }
+        Optional<ParticipationRequest> participationRequest = requestRepository.findAllByRequester_IdAndEvent_Id(userId, eventId);
+        if (participationRequest.isEmpty()) {
+            throw new WrongIdException("Пользователь с id=" + userId + " не участвовал в событии");
+        } else if (!participationRequest.get().getStatus().equals(Status.CONFIRMED)) {
+            throw new WrongIdException("Пользователь с id=" + userId + " не участвовал в событии");
+        }
+        User initiator = event.getInitiator();
+        if (likeService.checkRate(userId, eventId, like)) {
+            if (like) {
+                initiator.setRating(initiator.getRating() + 1);
+                event.setRating(event.getRating() + 1);
+            } else {
+                initiator.setRating(initiator.getRating() - 1);
+                event.setRating(event.getRating() - 1);
+            }
+            likeService.addLike(user.get(), event, like);
+            userRepository.save(initiator);
+            return EventMapper.fromEventToFull(eventRepository.save(event));
+        } else {
+            return EventMapper.fromEventToFull(event);
         }
     }
 }
